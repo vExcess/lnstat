@@ -1,0 +1,13 @@
+Package: lnstat
+Version: 1.0-1
+Installed-Size: 37.7
+Section: base
+Priority: optional
+Architecture: i386
+Depends: 
+Maintainer: Vexcess
+Description: lnstat
+ Utility for counting lines of source code,
+ number of comment lines, and blank lines.
+ Important! Node JS must be installed
+ on your system to run lnstat.
