@@ -6,5 +6,8 @@
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "esbuild": "^0.21.5"
   }
 }

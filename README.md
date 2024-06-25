@@ -44,18 +44,29 @@ examples:
 ──────────────────┴───────┴──────────────┴────────────────┴───────────────┴──────────────┘
 ```
 
+## Understanding the Percents
+The percentages in the Code, Comments, and Blanks columns are the percents out of the total lines per type of file.
+The percentages in the Lines column are the percents out of the total lines per directory.
+
 ## Compile Project
-Run `make` to compile the project. This requires `npx` and `tsc` to be installed globally. Also `zig` and `yui-compressor` must be installed. The output will be in the `dist` directory.
+Run `make` to compile the project. `node` and `zig` must be installed. Also `npx` and 
+`esbuild` must be installed globally. The output will be in the `dist` directory.
 
 ## Build Deb Package
-First compile the project. Next run `make deb` to build the deb package. The deb package will be placed in the `dist` directory.
+First compile the project. Next run `make deb` to build the deb package. 
+The deb package outputted in the `dist` directory.
 
 ## Installation
-Debian based Linux distros: Double click the deb package and press the "Install Package" button.  
-Other Linux distros: Download the compiled programs from `dist` and add the executable to your PATH.  
-Windows: Download the repo and required softwares, compile the project, and add the executable to your PATH.  
-Mac: Last I checked Mac refuses to compile Zig code, so take the common Mac L.  
+**Debian based Linux distros**: Double click the deb package and press the "Install Package" button.  
+**Other Linux distros**: Download the compiled programs from `dist` and add the executable to your PATH.  
+**Windows**: Download the repo and required softwares, compile the project, and add the executable to your PATH.  
+**Mac**: Last I'm aware, Mac refuses to compile Zig code, so take the common Mac L. I refuse to waste money 
+on an overpriced chromebook just to see if it works.
 
 ## Uninstallation
-Debian based Linux distros: Run `sudo apt remove lnstat`.  
-Other Linux distros & Windows: Remove the executable from your path and delete the compiled program.
+**Debian based Linux distros**: Run `sudo apt remove lnstat`.  
+**Other Linux distros & Windows**: Remove the executable from your path and delete the compiled program.
+
+## Running as Dev
+This project was written using Bun `bun run index.ts` since Bun supports TypeScript natively. 
+You can also run the project using Node but you will need to transpile it first.

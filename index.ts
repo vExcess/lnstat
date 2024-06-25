@@ -22,7 +22,7 @@ function getFileExt(path: string) {
     let i = path.length - 1;
     while (i > 0) {
         if (path.charAt(i) === "/") {
-            return null;
+            return "";
         } else if (path.charAt(i) === ".") {
             let ext = path.slice(i + 1);
             if (ext === "cjs" || ext === "mjs") {
@@ -32,7 +32,7 @@ function getFileExt(path: string) {
         }
         i--;
     }
-    return null;
+    return "";
 }
 
 const extNameMap = {
@@ -315,7 +315,7 @@ async function getDirStats(path: string, options: getDirStatsOptions, depth=0) {
 
                 const ext = getFileExt(myPath);
                 const mappedName = extNameMap[ext as keyof typeof extNameMap];
-                if (ext && (mappedName || options.includeUnsupported)) {
+                if (ext.length !== 0 && (mappedName || options.includeUnsupported)) {
                     let extStats = dirStats.extsStats.get(ext);
 
                     // create extStats if it doesn't exist
@@ -391,24 +391,10 @@ function tablizeDirStats(stats: DirStats, depth: number, maxDepth: number): Stri
         const rowFirstChar = String.fromCharCode(i < entries.length - 1 ? 9500 : 9492);
         const decor = rowFirstChar + String.fromCharCode(9472) + " ";
         const extName = extNameMap[castedKey] ?? key;
-        // const percent = "" + Math.round(item.lines / totals[1] * 100) + "%";
-        let label = `${decor}${extName}`;
-        // if (label.length > 13) {
-        //     while (label.length > 12) {
-        //         label = label.slice(1);
-        //     }
-        //     label = String.fromCharCode(8230) + label;
-        // }
-        // const values = ;
-        // for (let j = 3; j < values.length; j++) {
-        //     const numValues = values as Array<number>;
-        //     const percent = Math.round(numValues[j] / numValues[2] * 100) + "%";
-        //     values[j] = percent.padEnd(6, " ") + values[j];
-        // }
-        // const row = mkRow(values, maxLens, aligns);
+
         if (item.lines !== 0) {
             rows.push([
-                label, 
+                decor + extName, 
                 "" + item.files,
                 [perc(item.lines, totals[1]), "" + item.lines], 
                 [perc(item.code, item.lines), "" + item.code], 
@@ -417,7 +403,7 @@ function tablizeDirStats(stats: DirStats, depth: number, maxDepth: number): Stri
             ]);
         } else {
             rows.push([
-                label, 
+                decor + extName, 
                 "" + item.files, 
                 ["", ""], 
                 ["", ""], 
@@ -517,7 +503,7 @@ function showHelp() {
     console.log([
         "usage: lnstat <path> [options]\n       lnstat [options] <path>",
         "\noptions:\n" + options,
-        '\nexamples:\n    lnstat ./node_modules -f=".*\\.ts"\n    lnstat --exclude=.*\\.css -ia ./\n    lnstat ../'
+        '\nexamples:\n    lnstat ./node_modules -f=".*\\.ts"\n    lnstat --exclude=.*\\.css -ia ./\n    lnstat index.js'
     ].join("\n"));
 }
 
@@ -543,19 +529,41 @@ async function main() {
         }
     }
 
-    const searchDir = args.find(arg => arg[0] !== "-");
+    let searchDir = args.find(arg => arg[0] !== "-");
     if (!searchDir) {
         showHelp();
         return;
+    } else {
+        searchDir = searchDir.replaceAll("\\", "/");
     }
 
-    const stats = await getDirStats(searchDir.replaceAll("\\", "/"), {
-        includeUnsupported,
-        includeDotfiles,
-        excludeRegexes,
-        filterRegexes
-    });
-    const tabledStats = tablizeDirStats(stats, 0, 1) as Array<StringTable>;
+    let tabledStats: Array<StringTable>;
+    if (isDir(searchDir)) {
+        const stats = await getDirStats(searchDir, {
+            includeUnsupported,
+            includeDotfiles,
+            excludeRegexes,
+            filterRegexes
+        });
+        tabledStats = tablizeDirStats(stats, 0, 1) as Array<StringTable>;
+    } else {
+        const ext = getFileExt(searchDir);
+        const fileStats = await getFileStats(searchDir, ext);
+        const dirStats: DirStats = {
+            path: searchDir,
+            extsStats: new Map(),
+            subDirs: []
+        };
+        dirStats.extsStats.set(ext, {
+            files: 1,
+            lines: fileStats.lines,
+            code: fileStats.code,
+            comments: fileStats.comments,
+            blanks: fileStats.blanks,
+        });
+        tabledStats = tablizeDirStats(dirStats, 0, 1) as Array<StringTable>;
+    }
+
     displayResults(tabledStats);
 }
 main();

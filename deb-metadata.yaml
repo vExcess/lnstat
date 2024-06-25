@@ -1,11 +1,11 @@
 Package: lnstat
-Version: 1.0-1
-Installed-Size: 38.6
+Version: 1.1-1
+Installed-Size: 36.1
 Section: base
 Priority: optional
 Architecture: i386
 Depends: 
-Maintainer: Vexcess
+Maintainer: VExcess <github.com/vExcess>
 Description: lnstat
  Utility for counting lines of source code,
  number of comment lines, and blank lines.

@@ -1,9 +1,9 @@
 build:
-	npx tsc -m amd --outFile dist/index.js index.ts || exit 0;
+	rm ./dist -r || exit 0;
+	mkdir dist
+	npx esbuild --minify --loader=ts < index.ts > ./dist/lnstat.js
 	zig build-exe -O ReleaseSmall -femit-bin=dist/lnstat main.zig
 	rm dist/lnstat.o
-	yui-compressor ./dist/index.js > ./dist/lnstat.js
-	rm ./dist/index.js
 
 deb:
 	$(eval pkgVersion := $(shell sed -n '2p' deb-metadata.yaml | cut -d' ' -f 2))
