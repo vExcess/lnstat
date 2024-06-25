@@ -18,5 +18,5 @@ deb:
 	mkdir $(debPkgName)/DEBIAN
 	cp ./deb-metadata.yaml $(debPkgName)/DEBIAN/control
 	dpkg-deb --build $(debPkgName)
-	mv ./$(debPkgName).deb ./dist/$(debPkgName)
+	mv ./$(debPkgName).deb ./dist/$(debPkgName).deb
 	rm -r $(debPkgName)
