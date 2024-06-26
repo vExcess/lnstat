@@ -12,6 +12,8 @@
 
 */
 
+import { file } from "bun";
+
 const fs = require("fs");
 
 function isDir(path: string) {
@@ -59,6 +61,8 @@ type FileStats = {
     code: number,
     comments: number,
     blanks: number,
+    avgLength: number,
+    maxLength: number
 };
 
 type ExtStats = FileStats & {
@@ -78,6 +82,8 @@ async function getFileStats(path: string, ext: string): Promise<FileStats> {
             code: 0,
             comments: 0,
             blanks: 0,
+            avgLength: 0,
+            maxLength: 0
         };
 
         const readStream = fs.createReadStream(path, { encoding: 'utf8' });
@@ -102,8 +108,14 @@ async function getFileStats(path: string, ext: string): Promise<FileStats> {
                 isFirstChunk = false;
             }
 
+            const lines = chunk.split("\n");
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i].length > fileStats.maxLength) {
+                    fileStats.maxLength = lines[i].length;
+                }
+            }
+
             if (["zig", "rs"].includes(ext)) {
-                const lines = chunk.split("\n");
                 lineCount = lines.length;
                 for (let i = 0; i < lines.length; i++) {
                     const trimed = lines[i].trimStart();
@@ -114,7 +126,6 @@ async function getFileStats(path: string, ext: string): Promise<FileStats> {
                     }
                 }
             } else if (["py"].includes(ext)) {
-                const lines = chunk.split("\n");
                 lineCount = lines.length;
                 for (let i = 0; i < lines.length; i++) {
                     const trimed = lines[i].trimStart();
@@ -215,7 +226,6 @@ async function getFileStats(path: string, ext: string): Promise<FileStats> {
                 }
                 overflowedSlc = chunk[chunk.length - 1];
             } else {
-                const lines = chunk.split("\n");
                 lineCount = lines.length;
                 for (let i = 0; i < lines.length; i++) {
                     const trimed = lines[i].trimStart();
@@ -229,7 +239,11 @@ async function getFileStats(path: string, ext: string): Promise<FileStats> {
             fileStats.comments += commentCount;
             fileStats.blanks += blankCount;
             fileStats.code += lineCount - commentCount - blankCount;
+            fileStats.avgLength += chunk.length;
         }).on('end', () => {
+            if (fileStats.lines > 0) {
+                fileStats.avgLength = (fileStats.avgLength - fileStats.lines) / fileStats.lines;
+            }
             resolve(fileStats);
         });
     });
@@ -285,6 +299,8 @@ async function getDirStats(path: string, options: getDirStatsOptions, depth=0) {
                             code: 0,
                             comments: 0,
                             blanks: 0,
+                            avgLength: 0,
+                            maxLength: 0
                         };
                         dirStats.extsStats.set(ext, dirExtStats);
                     }
@@ -326,6 +342,8 @@ async function getDirStats(path: string, options: getDirStatsOptions, depth=0) {
                             code: 0,
                             comments: 0,
                             blanks: 0,
+                            avgLength: 0,
+                            maxLength: 0
                         };
                         dirStats.extsStats.set(ext, extStats);
                     }
@@ -355,7 +373,7 @@ type StringTable = Array<Array<string | Array<string>>>;
 function tablizeDirStats(stats: DirStats, depth: number, maxDepth: number): StringTable | Array<StringTable> {
     const entries = Array.from(stats.extsStats.entries());
 
-    const totals = [0, 0, 0, 0, 0];
+    const totals = [0, 0, 0, 0, 0, 0, 0];
     for (let i = 0; i < entries.length; i++) {
         const item = entries[i][1];
         totals[0] += item.files;
@@ -363,7 +381,12 @@ function tablizeDirStats(stats: DirStats, depth: number, maxDepth: number): Stri
         totals[2] += item.code;
         totals[3] += item.comments;
         totals[4] += item.blanks;
+        totals[5] += item.avgLength;
+        if (item.maxLength > totals[6]) {
+            totals[6] = item.maxLength;
+        }
     }
+    totals[5] = Math.round(totals[5] / entries.length);
 
     function perc(n: number, d: number) {
         return "" + Math.round(n / d * 100) + "%";
@@ -372,11 +395,12 @@ function tablizeDirStats(stats: DirStats, depth: number, maxDepth: number): Stri
     const rows: StringTable = [
         [
             stats.path, 
-            "" + totals[0], 
-            "" + totals[1], 
+            "" + totals[0],
+            "" + totals[1],
             [perc(totals[2], totals[1]), "" + totals[2]],
             [perc(totals[3], totals[1]), "" + totals[3]],
-            [perc(totals[4], totals[1]), "" + totals[4]]
+            [perc(totals[4], totals[1]), "" + totals[4]],
+            ["" + totals[5], "" + totals[6]],
         ]
     ];
 
@@ -399,7 +423,8 @@ function tablizeDirStats(stats: DirStats, depth: number, maxDepth: number): Stri
                 [perc(item.lines, totals[1]), "" + item.lines], 
                 [perc(item.code, item.lines), "" + item.code], 
                 [perc(item.comments, item.lines), "" + item.comments], 
-                [perc(item.blanks, item.lines), "" + item.blanks]
+                [perc(item.blanks, item.lines), "" + item.blanks],
+                ["" + Math.round(item.avgLength), "" + item.maxLength]
             ]);
         } else {
             rows.push([
@@ -408,7 +433,8 @@ function tablizeDirStats(stats: DirStats, depth: number, maxDepth: number): Stri
                 ["", ""], 
                 ["", ""], 
                 ["", ""], 
-                ["", ""]
+                ["", ""],
+                ["", ""],
             ]);
         }
     }
@@ -449,8 +475,8 @@ function mkRow(values: Array<string | Array<string>>, paddings: Array<number>, a
 }
 
 function displayResults(sections: Array<StringTable>) {
-    const labels = ["Language", "Files", "Lines", "Code", "Comments", "Blanks"];
-    const rightAligned = [false, true, true, true, true, true];
+    const labels = ["Language", "Files", "Lines", "Code", "Comments", "Blanks", "Avg/Max Len"];
+    const rightAligned = [false, true, true, true, true, true, true];
 
     let paddings = labels.map(l => l.length);
     for (let i = 0; i < sections.length; i++) {
@@ -464,17 +490,15 @@ function displayResults(sections: Array<StringTable>) {
                         paddings[k] = item.length;
                     }
                 } else {
-                    if (item[1].length + 6 > paddings[k]) {
-                        paddings[k] = item[1].length + 6;
+                    if (item[0].length + item[1].length + 2 > paddings[k]) {
+                        paddings[k] = item[0].length + item[1].length + 2;
                     }
                 }
             }
         }
     }
-
-    paddings = paddings.map((n, idx) => idx > 2 ? n + 2 : n);
-
-    const headRow = mkRow(labels, paddings, Array(6).fill(false));
+    
+    const headRow = mkRow(labels, paddings, Array(labels.length).fill(false));
 
     const dividerBold = String.fromCharCode(9473).repeat(headRow.length);
     const divider = paddings.map(n => String.fromCharCode(9472).repeat(n + 2)).join(String.fromCharCode(9524)) + String.fromCharCode(9496);
@@ -560,6 +584,8 @@ async function main() {
             code: fileStats.code,
             comments: fileStats.comments,
             blanks: fileStats.blanks,
+            avgLength: fileStats.avgLength,
+            maxLength: fileStats.maxLength
         });
         tabledStats = tablizeDirStats(dirStats, 0, 1) as Array<StringTable>;
     }
