@@ -30,7 +30,7 @@ pub fn main() !void {
         const argsSlice = try argsList.toOwnedSlice();
 
         // run js program via node
-        var child = std.ChildProcess.init(argsSlice, allocator);
+        var child = std.process.Child.init(argsSlice, allocator);
         try child.spawn();
         _ = try child.wait();
     } else {

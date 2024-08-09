@@ -12,8 +12,6 @@
 
 */
 
-import { file } from "bun";
-
 const fs = require("fs");
 
 function isDir(path: string) {

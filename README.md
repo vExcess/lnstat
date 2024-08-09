@@ -1,8 +1,6 @@
 # lnstat
 Utility for counting lines of source code,
 number of comment lines, and blank lines.
-Important! Node JS must be installed
-on your system to run lnstat.
 
 ## Usage
 ```
@@ -48,25 +46,32 @@ examples:
 The percentages in the Code, Comments, and Blanks columns are the percents out of the total lines per type of file.
 The percentages in the Lines column are the percents out of the total lines per directory.
 
-## Compile Project
-Run `make` to compile the project. `node` and `zig` must be installed. Also `npx` and 
-`esbuild` must be installed globally. The output will be in the `dist` directory.
+## Running as Dev
+To run the project without compiling it use `bun run src/lnstat.ts`. This requires that `bun` is installed.
+
+## Compile
+Firstly, `node` (v16 or greater) and `zig` (v0.13.0 or greater) must be installed.  
+Next, install all required Node modules:
+```
+npm install -g pkg
+npm install -g npx
+npm install -g esbuild
+```
+
+To compile the shermes version of lnstat you will additionally need to build Static Hermes from source ([How to try Static Hermes](https://github.com/facebook/hermes/discussions/1137))
+
+Then run `make` to build the Node reliant and standalone versions of lnstat. The outputs will be in `dist/node` and `dist/standalone` respectively. You can also run `make shermes` to build the static hermes version of the project. The output will be in `dist/shermes` however the shermes version of the project currently does not work and seg faults when run.
 
 ## Build Deb Package
-First compile the project. Next run `make deb` to build the deb package. 
-The deb package outputted in the `dist` directory.
+First compile the project following the instructions above. Next run `make deb-node` or `make deb-standalone` to build the deb package for the Node dependent or standalone version of lnstat. The deb package will be output to the `dist` directory. The Node dependent version is a mere 35.5kB however it requires that the user have Node installed on their system. The standalone version is 42.7 MB but can run on systems that do not have Node installed. Ideally I would like to get the shermes version working so that it can be standalone yet lightweight, however shermes is not mature enough of a software to do so just yet.
 
-## Installation
-**Debian based Linux distros**: Double click the deb package and press the "Install Package" button.  
-**Other Linux distros**: Download the compiled programs from `dist` and add the executable to your PATH.  
+## Install
+For the convenience of Linux users who have Node installed I have provided the `dist/node/lnstat`, `dist/node/lnstat.js` and `/dist/lnstat_x.x-x.deb` files in the repo's dist folder. Therefore you can just download the compiled program and do not need to build it from source.
+**Debian based Linux distros**: Download and double click the deb package in `dist` and press the "Install Package" button.  
+**Other Linux distros**: Download the files from `dist/node` and add the executable to your PATH.  
 **Windows**: Download the repo and required softwares, compile the project, and add the executable to your PATH.  
-**Mac**: Last I'm aware, Mac refuses to compile Zig code, so take the common Mac L. I refuse to waste money 
-on an overpriced chromebook just to see if it works.
+**Mac**: I have never and will never own a Mac so I don't officially support it, but since Mac OS is Unix based I'd imagine it's not that much harder to compile it from source than it is on Linux.
 
-## Uninstallation
+## Uninstall
 **Debian based Linux distros**: Run `sudo apt remove lnstat`.  
-**Other Linux distros & Windows**: Remove the executable from your path and delete the compiled program.
-
-## Running as Dev
-This project was written using Bun `bun run index.ts` since Bun supports TypeScript natively. 
-You can also run the project using Node but you will need to transpile it first.
+**Other**: Remove the executable from your path and delete the compiled program.
