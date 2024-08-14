@@ -192,7 +192,11 @@ const console = {
 
 // ---------- process Polyfill -----------
 const process = {
-    argv: ["ab", "cd", "ef"],
+    argv: [
+        '/home/vexcess/.nvm/versions/node/v20.16.0/bin/node',
+        '/usr/local/bin/lnstat.js',
+        './'
+    ],
     stdout: {
         write: print
     }

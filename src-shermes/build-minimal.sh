@@ -5,5 +5,5 @@ mv fs-polyfill.o ./lib/fs-polyfill.o
 CWD=$(pwd)
 export CPATH=$CWD/include
 # export LIBRARY_PATH=$CWD/lib
-shermes -typed -Wc,lib/fs-polyfill.o -o=lnstat lnstat.ts
+shermes -typed -Wc,lib/fs-polyfill.o -o=minimal minimal.ts
 rm ./lib/fs-polyfill.o
