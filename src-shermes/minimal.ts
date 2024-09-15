@@ -44,7 +44,11 @@ function showHelp() {
 function main() {
     print("checkpoint 1")
     print(process.argv.length)
-    const args = Array_slice(process.argv, 2, process.argv.length);
+    const args = Array_slice([
+        '/home/vexcess/.nvm/versions/node/v20.16.0/bin/node',
+        '/usr/local/bin/lnstat.js',
+        './'
+    ], 2, 3);
     let excludeRegexes = [];
     let filterRegexes = [];
     print("checkpoint 2")

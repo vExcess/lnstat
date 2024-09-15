@@ -1,11 +1,17 @@
-build:
+dart:
+	mkdir dist || exit 0;
+	dart compile exe ./src-dart/lnstat.dart
+	mkdir ./dist/dart || exit 0;
+	mv ./src-dart/lnstat.exe ./dist/dart/lnstat
+
+ts:
 	mkdir dist || exit 0;
 	rm ./dist/node -r || exit 0;
 	rm ./dist/standalone -r || exit 0;
 	mkdir ./dist/node
 	mkdir ./dist/standalone
-	npx esbuild --minify --loader=ts < ./src/lnstat.ts > ./dist/node/lnstat.js
-	zig build-exe -O ReleaseSmall -femit-bin=dist/node/lnstat ./src/main.zig
+	npx esbuild --minify --loader=ts < ./src-ts/lnstat.ts > ./dist/node/lnstat.js
+	zig build-exe -O ReleaseSmall -femit-bin=dist/node/lnstat ./src-ts/main.zig
 	rm dist/node/lnstat.o
 	pkg -t node16 -o ./dist/standalone/lnstat ./dist/node/lnstat.js
 
@@ -15,33 +21,18 @@ shermes:
 	mkdir ./dist/shermes
 	mv ./src-shermes/lnstat ./dist/shermes/lnstat
 
-_deb-build-start:
-	rm $(debPkgName) -r || exit 0;
-	mkdir $(debPkgName)
-	mkdir $(debPkgName)/usr
-	mkdir $(debPkgName)/usr/local
-	mkdir $(debPkgName)/usr/local/bin
+_build:
+	chmod 755 ./build.sh
+	./build.sh
 
-_deb-build-end:
-	mkdir $(debPkgName)/DEBIAN
-	cp ./$(debMetaDataFile) $(debPkgName)/DEBIAN/control
-	dpkg-deb --build $(debPkgName)
-	mv ./$(debPkgName).deb ./dist/$(debPkgName).deb
-	rm -r $(debPkgName)
+deb-ts-node:
+	bun run deb-metadata-generator.ts node
+	$(MAKE) _build
+	
+deb-ts-standalone:
+	bun run deb-metadata-generator.ts node-standalone
+	$(MAKE) _build
 
-deb-node:
-	$(eval debMetaDataFile := deb-metadata-node.yaml)
-	$(eval pkgVersion := $(shell sed -n '2p' $(debMetaDataFile) | cut -d' ' -f 2))
-	$(eval debPkgName := lnstat_$(pkgVersion))
-	$(MAKE) _deb-build-start pkgVersion=$(pkgVersion) debPkgName=$(debPkgName)
-	cp ./dist/node/lnstat $(debPkgName)/usr/local/bin/lnstat
-	cp ./dist/node/lnstat.js $(debPkgName)/usr/local/bin/lnstat.js
-	$(MAKE) _deb-build-end pkgVersion=$(pkgVersion) debPkgName=$(debPkgName) debMetaDataFile=$(debMetaDataFile)
-
-deb-standalone:
-	$(eval debMetaDataFile := deb-metadata-standalone.yaml)
-	$(eval pkgVersion := $(shell sed -n '2p' $(debMetaDataFile) | cut -d' ' -f 2))
-	$(eval debPkgName := lnstat_$(pkgVersion))
-	$(MAKE) _deb-build-start pkgVersion=$(pkgVersion) debPkgName=$(debPkgName)
-	cp ./dist/standalone/lnstat $(debPkgName)/usr/local/bin/lnstat
-	$(MAKE) _deb-build-end pkgVersion=$(pkgVersion) debPkgName=$(debPkgName) debMetaDataFile=$(debMetaDataFile)
+deb-dart:
+	bun run deb-metadata-generator.ts dart
+	$(MAKE) _build

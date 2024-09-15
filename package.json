@@ -2,7 +2,8 @@
   "name": "lnstat",
   "module": "index.ts",
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/node": "^22.5.5"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"

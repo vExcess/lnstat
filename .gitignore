@@ -1,5 +1,7 @@
 dist/shermes
 dist/standalone
+dist/dart
+dist/node
 
 # Based on https://raw.githubusercontent.com/github/gitignore/main/Node.gitignore
 
