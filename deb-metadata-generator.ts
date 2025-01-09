@@ -29,7 +29,7 @@ const mappings = {
 const data = mappings[process.argv[2] as keyof typeof mappings];
 
 fs.writeFileSync("./deb-metadata.yaml", `Package: lnstat
-Version: 1.2-1
+Version: 1.2-2
 Installed-Size: ${data.size}
 Section: base
 Priority: optional

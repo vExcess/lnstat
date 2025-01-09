@@ -115,6 +115,7 @@ const extNameMap = {
     "zig": "Zig",
     "c": "C",
     "cpp": "C++",
+    "cc": "C++",
     "dart": "Dart",
     "cs": "C#",
     "csx": "C# (csx)",
