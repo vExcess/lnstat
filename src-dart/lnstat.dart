@@ -120,7 +120,8 @@ const extNameMap = {
     "cs": "C#",
     "csx": "C# (csx)",
     "txt": "Plain Text",
-    "csv": "CSV"
+    "csv": "CSV",
+    "svelte": "Svelte"
 };
 
 typedef FileStats = Map<String, int>;
@@ -200,7 +201,7 @@ Future<FileStats> getFileStats(String path, String ext) async {
                     commentCount++;
                 }
             }
-        } else if (["html", "xml", "md"].contains(ext)) {
+        } else if (["html", "xml", "md", "svelte"].contains(ext)) {
             // we need a 2 char lookahead, this allows that even at chunk borders
             chunk = overflowedSlc.str + chunk;
             var chunkSlice = Slice(chunk, 0);
